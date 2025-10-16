@@ -34,7 +34,13 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(milliseconds: 900), () {
+      setState(() {
+        _flicker = true;
+      });
+    });
+
+    Timer(const Duration(seconds: 5), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -42,17 +48,8 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
-  void flick() {
-    Timer(const Duration(milliseconds: 10), () {
-      _flicker = true;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-
-    flick();
-
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       body: Center(

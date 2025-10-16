@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="cousify_frontend"
+        android:label="Cousify"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

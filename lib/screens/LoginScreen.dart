@@ -25,82 +25,84 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/logo.png',
-                width: 120,
-                height: 120,
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Welcome to Coursify',
-                style: TextStyle(
-                  color: AppColors.primaryColor,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+          padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/logo.png',
+                  width: 120,
+                  height: 120,
                 ),
-              ),
-              const SizedBox(height: 40),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.primaryColor),
-                  ),
-                  prefixIcon: Icon(
-                    Icons.email,
+                const SizedBox(height: 20),
+                const Text(
+                  'Welcome to Coursify',
+                  style: TextStyle(
                     color: AppColors.primaryColor,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 30),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.primaryColor),
+                const SizedBox(height: 40),
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.primaryColor),
+                    ),
+                    prefixIcon: Icon(
+                      Icons.email,
+                      color: AppColors.primaryColor,
+                    ),
                   ),
-                  prefixIcon: Icon(
-                    Icons.lock,
-                    color: AppColors.primaryColor,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 30),
+                TextField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.primaryColor),
+                    ),
+                    prefixIcon: Icon(
+                      Icons.lock,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 40),
+                ElevatedButton(
+                  onPressed: () {
+                    String email = _emailController.text;
+                    String password = _passwordController.text;
+                    if (email.isNotEmpty && password.isNotEmpty) { //call backend
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomePage()),
+                      );
+                    } else {
+                      print("Error fro email or pass");
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    minimumSize: Size(double.infinity, 50),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Text(
+                    'Log In',
+                    style: TextStyle(color: AppColors.backgroundFadeColor),
                   ),
                 ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: () {
-                  String email = _emailController.text;
-                  String password = _passwordController.text;
-                  if (email.isNotEmpty && password.isNotEmpty) { //call backend
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => HomePage()),
-                    );
-                  } else {
-                    print("Error fro email or pass");
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  minimumSize: Size(double.infinity, 50),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text(
-                  'Log In',
-                  style: TextStyle(color: AppColors.backgroundFadeColor),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
