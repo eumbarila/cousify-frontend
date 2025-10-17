@@ -2,10 +2,10 @@ class Course {
   final int id;
   final String title;
   final String description;
-  final String duration;
+  final int duration;
   final String format; // 'video', 'xapi', 'pdf'
-  final String courseType; // 'self_paced', 'instructor_led'
-  final String learningGoals;
+  final String courseType; 
+  final List<String> learningGoals;
   final double rating;
   final bool isDownloaded;
   final double progress;
@@ -29,22 +29,25 @@ class Course {
     required this.requiresCertificate,
   });
 
-  // Factory para crear instancia de prueba (mock)
   factory Course.mock() {
     return Course(
       id: 1,
       title: 'Introduction to Flutter Development',
       description:
           'Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.',
-      duration: '1h 30m',
+      duration: 234,
       format: 'video',
       courseType: 'self_paced',
-      learningGoals:
-          'In this course, you will learn the fundamentals of Flutter development, including widgets, state management, and building responsive UIs.',
+      learningGoals: [
+        'In this course, you will learn the fundamentals of Flutter development, including widgets, state management, and building responsive UIs.',
+        'In this course, you will learn the fundamentals of Flutter development, including widgets, state management, and building responsive UIs.',
+        'In this course, you will learn the fundamentals of Flutter development, including widgets, state management, and building responsive UIs.',
+      ],
       rating: 4.5,
       isDownloaded: false,
-      progress: 0.0,
-      titleImage: null,
+      progress: 45,
+      titleImage:
+          'https://i.pinimg.com/1200x/db/cd/1d/dbcd1dd88f1f3b4a2f391921c82a77e2.jpg',
       tags: ['Flutter', 'Mobile Development', 'Dart'],
       requiresCertificate: true,
     );

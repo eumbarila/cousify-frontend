@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cousify_frontend/utils/colors.dart';
 import 'package:cousify_frontend/models/course.dart';
+import 'package:cousify_frontend/utils/duration_utils.dart';
+import 'package:cousify_frontend/screens/CourseContentScreen.dart';
 
 class CourseDetailScreen extends StatelessWidget {
   final Course course;
@@ -29,13 +31,58 @@ class CourseDetailScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Course Image
+              if (course.titleImage != null)
+                Container(
+                  height: 200,
+                  width: double.infinity,
+                  margin: EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      course.titleImage!,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: Colors.grey[300],
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[300],
+                          child: Center(
+                            child: Icon(
+                              Icons.image_not_supported,
+                              size: 50,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
               // Course Title
               Text(
                 course.title,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8),
 
@@ -58,7 +105,13 @@ class CourseDetailScreen extends StatelessWidget {
                   // Start Course Button
                   ElevatedButton(
                     onPressed: () {
-                      // TODO: Navigate to course content
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              CourseContentScreen(course: course),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
@@ -79,17 +132,15 @@ class CourseDetailScreen extends StatelessWidget {
                 children: [
                   Text(
                     'Progress: ${course.progress.toStringAsFixed(1)}%',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 8),
                   LinearProgressIndicator(
                     value: course.progress / 100,
                     backgroundColor: Colors.grey[300],
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.primaryColor,
+                    ),
                     minHeight: 8,
                   ),
                 ],
@@ -103,7 +154,10 @@ class CourseDetailScreen extends StatelessWidget {
                   runSpacing: 8,
                   children: course.tags!.map((tag) {
                     return Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primaryColor.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(16),
@@ -124,10 +178,7 @@ class CourseDetailScreen extends StatelessWidget {
               // Description Section
               Text(
                 'Description',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8),
               Text(
@@ -143,19 +194,42 @@ class CourseDetailScreen extends StatelessWidget {
               // Learning Goals Section
               Text(
                 'Learning Goals',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8),
-              Text(
-                course.learningGoals,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[700],
-                  height: 1.5,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: course.learningGoals
+                    .map(
+                      (goal) => Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              margin: EdgeInsets.only(top: 6, right: 8),
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                goal,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                  height: 1.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
               SizedBox(height: 24),
 
@@ -165,7 +239,7 @@ class CourseDetailScreen extends StatelessWidget {
                   Icon(Icons.access_time, size: 20, color: Colors.grey[600]),
                   SizedBox(width: 8),
                   Text(
-                    'Duration: ${course.duration}',
+                    'Duration: ${DurationUtils.formatMinutes(course.duration)}',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[700],
