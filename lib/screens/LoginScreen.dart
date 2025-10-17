@@ -12,7 +12,6 @@ class LoginScreen extends StatefulWidget {
   State createState() => _LoginScreenState();
 }
 
-
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -20,9 +19,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Coursify"),
-      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 16.0),
@@ -31,11 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/logo.png',
-                  width: 120,
-                  height: 120,
-                ),
+                Image.asset('assets/logo.png', width: 120, height: 120),
                 const SizedBox(height: 20),
                 const Text(
                   'Welcome to Coursify',
@@ -70,10 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.primaryColor),
                     ),
-                    prefixIcon: Icon(
-                      Icons.lock,
-                      color: AppColors.primaryColor,
-                    ),
+                    prefixIcon: Icon(Icons.lock, color: AppColors.primaryColor),
                   ),
                   obscureText: true,
                 ),
@@ -82,7 +71,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     String email = _emailController.text;
                     String password = _passwordController.text;
-                    if (email.isNotEmpty && password.isNotEmpty) { //call backend
+                    if (email.isNotEmpty && password.isNotEmpty) {
+                      //call backend
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => HomePage()),
@@ -134,7 +124,6 @@ class _HomePageState extends State {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Coursify')),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomAppBar(
         child: Row(
@@ -160,7 +149,9 @@ class _HomePageState extends State {
           Icon(
             icon,
             size: 35.0,
-            color: isSelected ? AppColors.primaryColor : AppColors.backgroundFadeColor,
+            color: isSelected
+                ? AppColors.primaryColor
+                : AppColors.backgroundFadeColor,
           ),
           SizedBox(height: 1),
           Text(
