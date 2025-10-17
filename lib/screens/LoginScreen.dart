@@ -111,7 +111,7 @@ class _HomePageState extends State {
   final List<Widget> _pages = [
     CoursesScreen(),
     DownloadScreen(),
-    ProfileScreen(),
+    ProfileScreen(showBottomNav: false),
     MoreScreen(),
   ];
 
