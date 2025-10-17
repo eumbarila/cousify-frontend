@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cousify_frontend/utils/colors.dart';
 import 'package:cousify_frontend/screens/LoginScreen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,8 +14,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Coursify',
+      title: '',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(textTheme: GoogleFonts.poppinsTextTheme()),
       home: const SplashScreen(),
     );
   }
@@ -57,28 +59,9 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedOpacity(
-              opacity: _flicker? 1.0 : 0.0,
+              opacity: _flicker ? 1.0 : 0.0,
               duration: const Duration(seconds: 1),
-              child:
-                Image.asset(
-                  'assets/logo.png',
-                  width: 150,
-                  height: 150,
-                ),
-            ),
-            const SizedBox(height: 20),
-            AnimatedOpacity(
-              opacity: _flicker? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 250),
-              child:
-              const Text(
-                "Coursify",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryColor,
-                ),
-              ),
+              child: Image.asset('assets/logo.png', width: 150, height: 150),
             ),
           ],
         ),
