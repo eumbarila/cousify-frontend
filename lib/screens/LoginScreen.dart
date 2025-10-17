@@ -157,6 +157,7 @@ class _HomePageState extends State {
           Text(
             label,
             style: TextStyle(
+              fontSize: 10,
               color: isSelected ? AppColors.primaryColor : AppColors.backgroundFadeColor,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
