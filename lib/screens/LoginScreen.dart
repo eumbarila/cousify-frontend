@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cousify_frontend/utils/colors.dart';
+import 'package:cousify_frontend/services/auth_service.dart';
 import 'package:cousify_frontend/screens/CoursesScreen.dart';
 import 'package:cousify_frontend/screens/ProfileScreen.dart';
 import 'package:cousify_frontend/screens/DownloadScreen.dart';
@@ -15,6 +16,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -46,10 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.primaryColor),
                     ),
-                    prefixIcon: Icon(
-                      Icons.email,
-                      color: AppColors.primaryColor,
-                    ),
+                    prefixIcon: Icon(Icons.email, color: AppColors.primaryColor),
                   ),
                   keyboardType: TextInputType.emailAddress,
                 ),
@@ -68,17 +67,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 40),
                 ElevatedButton(
-                  onPressed: () {
-                    String email = _emailController.text;
-                    String password = _passwordController.text;
-                    if (email.isNotEmpty && password.isNotEmpty) {
-                      //call backend
+                  onPressed: () async {
+                    String email = _emailController.text.trim();
+                    String password = _passwordController.text.trim();
+
+                    setState(() => _errorMessage = null);
+
+                    if (email.isEmpty || password.isEmpty) {
+                      setState(() => _errorMessage = 'Email and password cannot be empty');
+                      return;
+                    }
+
+                    try {
+                      await AuthService.loginUser(email, password);
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => HomePage()),
                       );
-                    } else {
-                      print("Error fro email or pass");
+                    } catch (e) {
+                      setState(() => _errorMessage = 'Incorrect email or password');
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -91,6 +98,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(color: AppColors.backgroundFadeColor),
                   ),
                 ),
+                if (_errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: AppColors.dangerColor),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
               ],
             ),
           ),

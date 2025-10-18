@@ -237,7 +237,7 @@ class CourseDetailScreen extends StatelessWidget {
                   Icon(Icons.access_time, size: 20, color: Colors.grey[600]),
                   SizedBox(width: 8),
                   Text(
-                    'Duration: ${DurationUtils.formatMinutes(course.duration)}',
+                    'Duration: ${course.duration}',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[700],

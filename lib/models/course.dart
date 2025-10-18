@@ -2,7 +2,7 @@ class Course {
   final int id;
   final String title;
   final String description;
-  final int duration;
+  final String duration;
   final String format; // 'video', 'xapi', 'pdf'
   final String courseType; 
   final List<String> learningGoals;
@@ -29,13 +29,31 @@ class Course {
     required this.requiresCertificate,
   });
 
+  factory Course.fromJson(Map<String, dynamic> json) {
+    return Course(
+      id: json['id'],
+      title: json['title'],
+      description: json['description'],
+      duration: json['duration'],
+      format: json['format'],
+      courseType: json['course_type'],
+      learningGoals: List<String>.from(json['learning_goals'] ?? []),
+      rating: (json['rating'] as num).toDouble(),
+      isDownloaded: json['is_downloaded'],
+      progress: (json['progress'] as num).toDouble(),
+      titleImage: json['thumbnail_url'],
+      tags: List<String>.from(json['tags'] ?? []),
+      requiresCertificate: json['requires_certificate'],
+    );
+  }
+
   factory Course.mock() {
     return Course(
       id: 1,
       title: 'Introduction to Flutter Development',
       description:
           'Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.',
-      duration: 234,
+      duration: "1h 30m",
       format: 'video',
       courseType: 'self_paced',
       learningGoals: [
