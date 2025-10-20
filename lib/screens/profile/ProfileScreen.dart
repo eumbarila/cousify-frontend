@@ -3,8 +3,8 @@ import 'package:cousify_frontend/utils/colors.dart';
 import 'package:cousify_frontend/widgets/bottom_nav.dart';
 import 'package:cousify_frontend/widgets/profile_photo_picker.dart';
 import 'package:cousify_frontend/services/user_service.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:cousify_frontend/screens/LoginScreen.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const String routeName = '/profile';
@@ -20,8 +20,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _profile;
   bool _loading = true;
 
-  final ImagePicker _picker = ImagePicker();
-
   @override
   void initState() {
     super.initState();
@@ -33,9 +31,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _loading = true;
     });
     try {
-      // TODO: reemplazar por token real
-      final token = '';
-      final data = await UserService.getProfile(token);
+      // TODO: reemplazar por token real y userId (ej. de shared preferences)
+      final token = 'igxApoxPwT66sYBzenkEUf6YMtzk8Zh7'; // Token hardcodeado del backend
+      final userId = 2; // User ID hardcodeado para prueba
+      final data = await UserService.getProfile(token, userId);
       setState(() {
         _profile = data;
       });
@@ -45,24 +44,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _loading = false;
       });
-    }
-  }
-
-  Future<void> _pickAndUploadAvatar() async {
-    final XFile? picked = await _picker.pickImage(source: ImageSource.gallery, maxWidth: 1024);
-    if (picked == null) return;
-    final File file = File(picked.path);
-    try {
-      final token = '';
-      final resp = await UserService.uploadAvatar(token, file);
-      // Actualizar perfil local con nueva URL
-      setState(() {
-        _profile ??= {};
-        _profile!['avatar_url'] = resp['avatar_url'];
-        if (resp.containsKey('avatar_thumbnail_url')) _profile!['avatar_thumbnail_url'] = resp['avatar_thumbnail_url'];
-      });
-    } catch (e) {
-      print('Error uploading avatar: $e');
     }
   }
 
@@ -100,10 +81,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Use a circular decorated container to avoid any rectangular artifacts
                         GestureDetector(
                           onTap: () async {
-                            // Mostrar opciones y si se selecciona galería, lanzar picker
+                            // Mostrar opciones (avatar no funcional sin backend)
                             await showProfilePhotoOptions(context);
-                            // After the modal closes, try picking image (we could detect which action was selected but for now use direct pick)
-                            await _pickAndUploadAvatar();
                           },
                           child: Container(
                             width: 84,
@@ -111,15 +90,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
                               shape: BoxShape.circle,
-                              image: _profile != null && _profile!['avatar_url'] != null
-                                  ? DecorationImage(
-                                      image: NetworkImage(_profile!['avatar_url']),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : null,
                             ),
                             child: _profile != null && _profile!['avatar_url'] != null
-                                ? null
+                                ? ClipOval(
+                                    child: SvgPicture.network(
+                                      _profile!['avatar_url'],
+                                      fit: BoxFit.cover,
+                                      width: 84,
+                                      height: 84,
+                                      placeholderBuilder: (BuildContext context) => Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    ),
+                                  )
                                 : Center(
                                     child: Icon(Icons.camera_alt, color: Colors.white, size: 30),
                                   ),
@@ -147,12 +130,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               ListTile(
                                 leading: Icon(Icons.person, color: AppColors.backgroundFadeColor),
-                                title: Text('Michael Jordan', style: TextStyle(color: AppColors.backgroundFadeColor)),
+                                title: Text(_profile?['name'] ?? 'Nombre no disponible', style: TextStyle(color: AppColors.backgroundFadeColor)),
                               ),
                               Divider(height: 1),
                               ListTile(
                                 leading: Icon(Icons.public, color: AppColors.backgroundFadeColor),
-                                title: Text('http://www.michaeljordan.com', style: TextStyle(color: AppColors.backgroundFadeColor)),
+                                title: Text(_profile?['website'] ?? 'Sitio web no disponible', style: TextStyle(color: AppColors.backgroundFadeColor)),
                               ),
                             ],
                           ),
@@ -178,12 +161,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               ListTile(
                                 leading: Icon(Icons.email, color: AppColors.backgroundFadeColor),
-                                title: Text('michael@jordan.com', style: TextStyle(color: AppColors.backgroundFadeColor)),
+                                title: Text(_profile?['email'] ?? 'Email no disponible', style: TextStyle(color: AppColors.backgroundFadeColor)),
                               ),
                               Divider(height: 1),
                               ListTile(
                                 leading: Icon(Icons.phone_android, color: AppColors.backgroundFadeColor),
-                                title: Text('+1 510 486 1234', style: TextStyle(color: AppColors.backgroundFadeColor)),
+                                title: Text(_profile?['phone'] ?? 'Teléfono no disponible', style: TextStyle(color: AppColors.backgroundFadeColor)),
                               ),
                             ],
                           ),
@@ -203,9 +186,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: () {
-                  // For now just pop to root or close session placeholder
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                onPressed: () async {
+                  // Simular logout sin llamar al backend
+                  // Navegar a login reemplazando todo el stack
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    (route) => false,
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red[700],
