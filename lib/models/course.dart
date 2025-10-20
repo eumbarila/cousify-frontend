@@ -12,6 +12,7 @@ class Course {
   final String? titleImage;
   final List<String>? tags;
   final bool requiresCertificate;
+  final String? videoUrl; // URL del video
 
   Course({
     required this.id,
@@ -27,6 +28,7 @@ class Course {
     this.titleImage,
     this.tags,
     required this.requiresCertificate,
+    this.videoUrl,
   });
 
   factory Course.fromJson(Map<String, dynamic> json) {
@@ -57,9 +59,11 @@ class Course {
       format: 'video',
       courseType: 'self_paced',
       learningGoals: [
-        'In this course, you will learn the fundamentals of Flutter development, including widgets, state management, and building responsive UIs.',
-        'In this course, you will learn the fundamentals of Flutter development, including widgets, state management, and building responsive UIs.',
-        'In this course, you will learn the fundamentals of Flutter development, including widgets, state management, and building responsive UIs.',
+        'Master the fundamentals of Flutter development',
+        'Learn to create responsive UIs with widgets',
+        'Understand state management patterns',
+        'Build cross-platform mobile applications',
+        'Implement navigation and routing',
       ],
       rating: 4.5,
       isDownloaded: false,
@@ -68,6 +72,7 @@ class Course {
           'https://i.pinimg.com/1200x/db/cd/1d/dbcd1dd88f1f3b4a2f391921c82a77e2.jpg',
       tags: ['Flutter', 'Mobile Development', 'Dart'],
       requiresCertificate: true,
+      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', // Video de ejemplo
     );
   }
 }
