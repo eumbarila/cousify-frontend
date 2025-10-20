@@ -33,6 +33,10 @@ dependencies:
 
   cupertino_icons: ^1.0.8
   google_fonts: ^6.1.0
+  http: ^1.5.0
+  flutter_dotenv: ^6.0.0
+  image_picker: ^1.1.1
+  flutter_svg: ^2.0.10
   video_player: ^2.8.1
 
 dev_dependencies:
@@ -64,6 +68,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/logo.png
+    - .env
     - assets/videos/
 
   # To add assets to your application, add an assets section, like this:

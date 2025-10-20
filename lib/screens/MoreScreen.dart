@@ -138,9 +138,7 @@ class MoreScreen extends StatelessWidget {
                                 ),
                                 SizedBox(width: 4),
                                 Text(
-                                  DurationUtils.formatMinutes(
                                     mockCourse.duration,
-                                  ),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey[600],
