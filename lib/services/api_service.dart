@@ -6,7 +6,8 @@ import 'package:cousify_frontend/models/course.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://10.0.2.2:8080'; // Android Studio localhost ip
+  // URL base desde variable de entorno, con fallback por defecto
+  static String get _baseUrl => dotenv.env['API_BASE_URL'] ?? 'http://192.168.20.38:8000';
 
   static Map<String, String> _defaultHeaders() => {
     'Content-Type': 'application/json',
