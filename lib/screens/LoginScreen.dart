@@ -65,8 +65,41 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   obscureText: true,
                 ),
-                const SizedBox(height: 40),
-                ElevatedButton(
+                const SizedBox(height: 30),
+                
+                // Error message con diseño mejorado - ANTES del botón
+                if (_errorMessage != null)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red[300]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.red[700],
+                          size: 20,
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(
+                              color: Colors.red[700],
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                
+                ElevatedButton.icon(
                   onPressed: () async {
                     String email = _emailController.text.trim();
                     String password = _passwordController.text.trim();
@@ -90,23 +123,47 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white, // Texto e icono blancos
                     minimumSize: Size(double.infinity, 50),
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text(
-                    'Log In',
-                    style: TextStyle(color: AppColors.backgroundFadeColor),
-                  ),
-                ),
-                if (_errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: AppColors.dangerColor),
-                      textAlign: TextAlign.center,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
+                  icon: Icon(Icons.login, color: Colors.white),
+                  label: const Text(
+                    'Log In',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                
+                // Forgot Password link
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () {
+                    // TODO: Implementar funcionalidad de forgot password
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Forgot password feature coming soon!'),
+                        backgroundColor: AppColors.primaryColor,
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'Forgot Password?',
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColors.primaryColor, // Color del subrayado igual al texto
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

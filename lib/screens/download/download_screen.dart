@@ -22,17 +22,28 @@ class _DownloadScreenState extends State<DownloadScreen> {
   }
 
   void _loadDownloadedCourses() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      final data = await ApiService.getCourses();
+      final data = await ApiService.getDownloadedCourses();
       final courses = data.map((e) => Course.fromJson(e)).toList();
-      final downloaded = courses.where((c) => c.isDownloaded).toList();
 
       setState(() {
-        _downloadedCourses = downloaded;
+        _downloadedCourses = courses;
         _isLoading = false;
       });
     } catch (e) {
       print('Error loading downloaded courses: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading downloads: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       setState(() {
         _isLoading = false;
       });
@@ -47,38 +58,58 @@ class _DownloadScreenState extends State<DownloadScreen> {
         backgroundColor: Colors.white,
         elevation: 1,
         centerTitle: true,
-        title: const Text(
-          'Downloads',
-          style: TextStyle(color: Colors.black87),
-        ),
+        title: const Text('Downloads', style: TextStyle(color: Colors.black87)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : _downloadedCourses.isEmpty
-              ? Center(
-                  child: Text(
-                    'No downloaded courses yet.',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _downloadedCourses.length,
-                  itemBuilder: (context, index) {
-                    final course = _downloadedCourses[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: CourseCard(
-                        course: course,
-                        showProgressOverlay: true,
-                      ),
-                    );
-                  },
+      body: RefreshIndicator(
+        onRefresh: () async {
+          _loadDownloadedCourses();
+        },
+        child: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : _downloadedCourses.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.download_outlined,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'No downloaded courses yet',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 18),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Download courses to access them offline',
+                      style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                    ),
+                  ],
                 ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _downloadedCourses.length,
+                itemBuilder: (context, index) {
+                  final course = _downloadedCourses[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: CourseCard(
+                      course: course,
+                      showProgressOverlay: true,
+                      onDownloadChanged: () =>
+                          _loadDownloadedCourses(), // Refresh when download status changes
+                    ),
+                  );
+                },
+              ),
+      ),
     );
   }
 }
@@ -86,10 +117,12 @@ class _DownloadScreenState extends State<DownloadScreen> {
 class CourseCard extends StatelessWidget {
   final Course course;
   final bool showProgressOverlay;
+  final VoidCallback? onDownloadChanged;
 
   const CourseCard({
     required this.course,
     this.showProgressOverlay = false,
+    this.onDownloadChanged,
   });
 
   @override
@@ -104,7 +137,7 @@ class CourseCard extends StatelessWidget {
         );
       },
       child: Container(
-        height: 120,
+        height: 140, // Aumentado de 120 a 140 para más espacio
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -120,13 +153,17 @@ class CourseCard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 120,
-              height: 120,
+              width: 100, // Reducido de 120 a 100 para dar más espacio al texto
+              height: 140,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.horizontal(left: Radius.circular(12)),
+                borderRadius: BorderRadius.horizontal(
+                  left: Radius.circular(12),
+                ),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.horizontal(left: Radius.circular(12)),
+                borderRadius: BorderRadius.horizontal(
+                  left: Radius.circular(12),
+                ),
                 child: Stack(
                   children: [
                     course.titleImage != null
@@ -146,19 +183,6 @@ class CourseCard extends StatelessWidget {
                             },
                           )
                         : _placeholderImage(),
-                    if (showProgressOverlay && course.progress > 0)
-                      Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Container(
-                          height: 4,
-                          width: double.infinity,
-                          child: LinearProgressIndicator(
-                            value: course.progress / 100,
-                            backgroundColor: Colors.white.withOpacity(0.5),
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -168,35 +192,82 @@ class CourseCard extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // Título del curso
                     Text(
                       course.title,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      maxLines: 2,
+                      style: TextStyle(
+                        fontSize: 14, // Reducido de 16 a 14
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                      ),
+                      maxLines: 3, // Aumentado de 2 a 3 líneas
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 4),
+
+                    // Descripción
                     Text(
                       course.description,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(
+                        fontSize: 11, // Reducido de 12 a 11
+                        color: Colors.grey[600],
+                        height: 1.2,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Spacer(),
+
+                    // Barra de progreso
+                    if (course.progress > 0) ...[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Progress: ${course.progress.toStringAsFixed(0)}%',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          LinearProgressIndicator(
+                            value: course.progress / 100,
+                            backgroundColor: Colors.grey[300],
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.primaryColor,
+                            ),
+                            minHeight: 3,
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    // Fila inferior con duración y rating
                     Row(
                       children: [
-                        Icon(Icons.access_time, size: 14, color: Colors.grey),
+                        Icon(Icons.access_time, size: 12, color: Colors.grey),
                         SizedBox(width: 4),
-                        Text(
-                          course.duration,
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        Flexible(
+                          child: Text(
+                            course.duration,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[600],
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        Spacer(),
+                        SizedBox(width: 8),
                         Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: List.generate(5, (index) {
                             return Icon(
-                              index < course.rating.floor() ? Icons.star : Icons.star_border,
-                              size: 14,
+                              index < course.rating.floor()
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              size: 12, // Reducido de 14 a 12
                               color: Colors.amber,
                             );
                           }),
@@ -217,7 +288,11 @@ class CourseCard extends StatelessWidget {
     return Container(
       color: Colors.grey[300],
       child: Center(
-        child: Icon(Icons.play_circle_outline, size: 40, color: AppColors.primaryColor),
+        child: Icon(
+          Icons.play_circle_outline,
+          size: 40,
+          color: AppColors.primaryColor,
+        ),
       ),
     );
   }
