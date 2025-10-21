@@ -10,7 +10,7 @@ class CourseContentScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (course.format == "video" && course.videoUrl != null) {
+    if (course.format == "video" && course.downloadUrl != null) {
       return VideoPlayerScreen(course: course);
     } else if (course.format == "xapi") {
       return _XapiContentScreen();
