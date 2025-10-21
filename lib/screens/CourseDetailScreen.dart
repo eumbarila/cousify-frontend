@@ -9,6 +9,58 @@ class CourseDetailScreen extends StatelessWidget {
 
   const CourseDetailScreen({Key? key, required this.course}) : super(key: key);
 
+  void _showMoreOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.download, color: AppColors.primaryColor),
+                title: Text('Downloads'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // TODO: Implementar navegación a Downloads
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Downloads feature coming soon!')),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.favorite_border, color: AppColors.primaryColor),
+                title: Text('Add to favorites'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // TODO: Implementar agregar a favoritos
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Added to favorites!')),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.chat_bubble_outline, color: AppColors.primaryColor),
+                title: Text('Talk with AI'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // TODO: Implementar chat con AI
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('AI Chat coming soon!')),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,6 +74,11 @@ class CourseDetailScreen extends StatelessWidget {
           'Course Details',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showMoreOptions(context),
+        backgroundColor: AppColors.primaryColor,
+        child: Icon(Icons.more_horiz, color: Colors.white),
       ),
       body: SingleChildScrollView(
         child: Padding(

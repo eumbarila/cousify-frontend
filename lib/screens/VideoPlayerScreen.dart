@@ -36,11 +36,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   _initializeVideo() async {
     try {
       // Si la URL empieza con "assets/", usar asset, sino usar network
-      if (widget.course.videoUrl!.startsWith('assets/')) {
-        _controller = VideoPlayerController.asset(widget.course.videoUrl!);
+      if (widget.course.downloadUrl!.startsWith('assets/')) {
+        _controller = VideoPlayerController.asset(widget.course.downloadUrl!);
       } else {
         _controller = VideoPlayerController.networkUrl(
-          Uri.parse(widget.course.videoUrl!),
+          Uri.parse(widget.course.downloadUrl!),
         );
       }
       

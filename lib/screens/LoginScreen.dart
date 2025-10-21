@@ -4,7 +4,7 @@ import 'package:cousify_frontend/services/auth_service.dart';
 import 'package:cousify_frontend/screens/CoursesScreen.dart';
 import 'package:cousify_frontend/screens/ProfileScreen.dart';
 import 'package:cousify_frontend/screens/DownloadScreen.dart';
-import 'package:cousify_frontend/screens/MoreScreen.dart';
+import 'package:cousify_frontend/screens/certificates_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -128,7 +128,7 @@ class _HomePageState extends State {
     CoursesScreen(),
     DownloadScreen(),
     ProfileScreen(showBottomNav: false),
-    MoreScreen(),
+    CertificatesScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -148,7 +148,7 @@ class _HomePageState extends State {
             _buildIcon(Icons.view_list_rounded, 'Courses', 0),
             _buildIcon(Icons.save_alt_rounded, 'Download', 1),
             _buildIcon(Icons.person, 'Profile', 2),
-            _buildIcon(Icons.more_horiz, 'More', 3),
+            _buildIcon(Icons.workspace_premium, 'Certificates', 3),
           ],
         ),
       ),

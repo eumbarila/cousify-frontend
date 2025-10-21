@@ -18,7 +18,7 @@ class BottomNav extends StatelessWidget {
             _buildIcon(context, Icons.view_list_rounded, 'Courses', 0),
             _buildIcon(context, Icons.save_alt_rounded, 'Downloads', 1),
             _buildIcon(context, Icons.person, 'Profile', 2),
-            _buildIcon(context, Icons.more_horiz, 'More', 3),
+            _buildIcon(context, Icons.workspace_premium, 'Certificates', 3),
           ],
         ),
       ),
