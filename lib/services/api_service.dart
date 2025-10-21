@@ -3,11 +3,12 @@ import 'dart:math';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cousify_frontend/models/course.dart';
+import 'package:cousify_frontend/services/session_manager.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiService {
-  // URL base desde variable de entorno, con fallback por defecto
-  static String get _baseUrl => dotenv.env['API_BASE_URL'] ?? 'http://192.168.20.38:8000';
+  static String get _baseUrl =>
+      dotenv.env['API_BASE_URL'] ?? 'http://192.168.20.38:8000';
 
   static Map<String, String> _defaultHeaders() => {
     'Content-Type': 'application/json',
@@ -15,8 +16,13 @@ class ApiService {
   };
 
   static Future<List<Map<String, dynamic>>> getCourses() async {
+    final userId = await SessionManager.getUserId();
+    if (userId == null) {
+      throw HttpException('User not logged in');
+    }
+
     final resp = await http.get(
-      Uri.parse('$_baseUrl/course/'),
+      Uri.parse('$_baseUrl/course/$userId'),
       headers: _defaultHeaders(),
     );
 
@@ -26,6 +32,24 @@ class ApiService {
     }
 
     throw HttpException('Failed to get courses: ${resp.statusCode}');
+  }
+
+  static Future<Map<String, dynamic>> getCourseDetail(int courseId) async {
+    final userId = await SessionManager.getUserId();
+    if (userId == null) {
+      throw HttpException('User not logged in');
+    }
+
+    final resp = await http.get(
+      Uri.parse('$_baseUrl/detail/$courseId/$userId'),
+      headers: _defaultHeaders(),
+    );
+
+    if (resp.statusCode == 200) {
+      return json.decode(resp.body) as Map<String, dynamic>;
+    }
+
+    throw HttpException('Failed to get course detail: ${resp.statusCode}');
   }
 
   static Future<bool> updateCourseProgress(
