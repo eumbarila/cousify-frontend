@@ -21,11 +21,15 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
   late Animation<double> _scaleAnimation;
   late bool _isDownloaded;
   bool _isDownloading = false;
+  Course? _detailedCourse;
+  bool _isLoadingDetails = true;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
     _isDownloaded = widget.course.isDownloaded;
+    _detailedCourse = widget.course; // Inicializamos con el curso actual
     _animationController = AnimationController(
       duration: Duration(milliseconds: 300),
       vsync: this,
@@ -36,6 +40,51 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
     );
+    _loadCourseDetails();
+  }
+
+  Future<void> _loadCourseDetails([bool isRefresh = false]) async {
+    if (isRefresh) {
+      setState(() {
+        _isRefreshing = true;
+      });
+      // Iniciar animación del skeleton
+      _animationController.repeat(reverse: true);
+    } else {
+      setState(() {
+        _isLoadingDetails = true;
+      });
+    }
+    
+    try {
+      final detailData = await ApiService.getCourseDetail(widget.course.id);
+      final detailedCourse = Course.fromJson(detailData);
+      
+      setState(() {
+        _detailedCourse = detailedCourse;
+        _isDownloaded = detailedCourse.isDownloaded;
+        _isLoadingDetails = false;
+        _isRefreshing = false;
+      });
+      
+      // Detener animación del skeleton
+      if (isRefresh) {
+        _animationController.stop();
+        _animationController.reset();
+      }
+    } catch (e) {
+      print('Error loading course details: $e');
+      setState(() {
+        _isLoadingDetails = false;
+        _isRefreshing = false;
+      });
+      
+      // Detener animación del skeleton en caso de error
+      if (isRefresh) {
+        _animationController.stop();
+        _animationController.reset();
+      }
+    }
   }
 
   @override
@@ -121,6 +170,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    final course = _detailedCourse ?? widget.course;
+    
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -132,8 +183,23 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
           'Course Details',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
+        bottom: _isRefreshing 
+          ? PreferredSize(
+              preferredSize: Size.fromHeight(2),
+              child: LinearProgressIndicator(
+                backgroundColor: Colors.grey[300],
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+              ),
+            )
+          : null,
       ),
-      body: Stack(
+      body: _isLoadingDetails && _detailedCourse == null
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primaryColor,
+              ),
+            )
+          : Stack(
         children: [
           // Main content
           SingleChildScrollView(
@@ -143,7 +209,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Course Image
-                  if (widget.course.titleImage != null)
+                  if (course.titleImage != null)
                     Container(
                       height: 200,
                       width: double.infinity,
@@ -162,7 +228,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
-                          widget.course.titleImage!,
+                          course.titleImage!,
                           fit: BoxFit.cover,
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
@@ -192,7 +258,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
                     ),
                   // Course Title
                   Text(
-                    widget.course.title,
+                    course.title,
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),
@@ -205,7 +271,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
                       Row(
                         children: List.generate(5, (index) {
                           return Icon(
-                            index < widget.course.rating.floor()
+                            index < course.rating.floor()
                                 ? Icons.star
                                 : Icons.star_border,
                             color: Colors.amber,
@@ -215,14 +281,16 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
                       ),
                       // Start Course Button
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
+                        onPressed: () async {
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  CourseContentScreen(course: widget.course),
+                                  CourseContentScreen(course: course),
                             ),
                           );
+                          // Recargar datos cuando regrese
+                          _loadCourseDetails(true);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryColor,
@@ -238,27 +306,29 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
                   SizedBox(height: 16),
 
                   // Progress Bar
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Progress: ${widget.course.progress.toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
+                  _isRefreshing 
+                    ? _buildProgressSkeleton()
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Progress: ${course.progress.toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          LinearProgressIndicator(
+                            value: course.progress / 100,
+                            backgroundColor: Colors.grey[300],
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.primaryColor,
+                            ),
+                            minHeight: 8,
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 8),
-                      LinearProgressIndicator(
-                        value: widget.course.progress / 100,
-                        backgroundColor: Colors.grey[300],
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.primaryColor,
-                        ),
-                        minHeight: 8,
-                      ),
-                    ],
-                  ),
                   SizedBox(height: 16),
 
                   // Tags
@@ -501,6 +571,36 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildProgressSkeleton() {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 16,
+              width: 120,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color: Colors.grey[300]!.withOpacity(0.5 + 0.5 * _fadeAnimation.value),
+              ),
+            ),
+            SizedBox(height: 8),
+            Container(
+              height: 8,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color: Colors.grey[300]!.withOpacity(0.5 + 0.5 * _fadeAnimation.value),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
