@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:cousify_frontend/models/course.dart';
 import 'package:cousify_frontend/utils/colors.dart';
+import 'package:cousify_frontend/services/api_service.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final Course course;
@@ -19,6 +21,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   bool _hasError = false;
   bool _showControls = true;
   bool _isFullscreen = false;
+  Timer? _progressTimer;
+  double _lastReportedProgress = 0.0;
 
   @override
   void initState() {
@@ -51,6 +55,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
       // Auto-hide controls after 3 seconds
       _hideControlsAfterDelay();
+      
+      // Start progress tracking
+      _startProgressTracking();
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -115,8 +122,38 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  void _startProgressTracking() {
+    _progressTimer = Timer.periodic(Duration(seconds: 1), (timer) async {
+      if (_controller.value.isInitialized && _controller.value.isPlaying) {
+        final currentPosition = _controller.value.position;
+        final totalDuration = _controller.value.duration;
+        
+        if (totalDuration.inSeconds > 0) {
+          final progressPercentage = (currentPosition.inSeconds / totalDuration.inSeconds) * 100;
+          
+          // Only update if progress has changed significantly (more than 1%)
+          if ((progressPercentage - _lastReportedProgress).abs() >= 1.0) {
+            try {
+              await ApiService.updateCourseProgress(widget.course.id, progressPercentage);
+              _lastReportedProgress = progressPercentage;
+              print('Progress updated: ${progressPercentage.toStringAsFixed(1)}%');
+            } catch (e) {
+              print('Error updating progress: $e');
+            }
+          }
+        }
+      }
+    });
+  }
+
+  void _stopProgressTracking() {
+    _progressTimer?.cancel();
+    _progressTimer = null;
+  }
+
   @override
   void dispose() {
+    _stopProgressTracking();
     _controller.dispose();
     // Restaurar orientaciones por defecto
     SystemChrome.setPreferredOrientations([

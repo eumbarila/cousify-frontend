@@ -1,8 +1,6 @@
 import 'dart:io';
-import 'dart:math';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:cousify_frontend/models/course.dart';
 import 'package:cousify_frontend/services/session_manager.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -41,7 +39,7 @@ class ApiService {
     }
 
     final resp = await http.get(
-      Uri.parse('$_baseUrl/detail/$courseId/$userId'),
+      Uri.parse('$_baseUrl/course/detail/$courseId/$userId'),
       headers: _defaultHeaders(),
     );
 
@@ -50,6 +48,29 @@ class ApiService {
     }
 
     throw HttpException('Failed to get course detail: ${resp.statusCode}');
+  }
+
+  // PATCH /course/{course_id}/progress/{user_id} - update course progress
+  static Future<Map<String, dynamic>> updateCourseProgress(
+    int courseId,
+    double progress,
+  ) async {
+    final userId = await SessionManager.getUserId();
+    if (userId == null) {
+      throw HttpException('User not logged in');
+    }
+
+    final resp = await http.patch(
+      Uri.parse('$_baseUrl/course/$courseId/progress/$userId'),
+      headers: _defaultHeaders(),
+      body: jsonEncode({'progress': progress}),
+    );
+
+    if (resp.statusCode == 200) {
+      return json.decode(resp.body) as Map<String, dynamic>;
+    }
+
+    throw HttpException('Failed to update progress: ${resp.statusCode}');
   }
 
   // PATCH /course/{course_id}/download/{user_id} - toggle download status
@@ -83,11 +104,5 @@ class ApiService {
         .toList();
   }
 
-  static Future<bool> updateCourseProgress(
-    int courseId,
-    double progress,
-  ) async {
-    await Future.delayed(Duration(milliseconds: 300 + Random().nextInt(500)));
-    return Random().nextDouble() > 0.1;
-  }
+
 }
