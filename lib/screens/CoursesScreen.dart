@@ -71,7 +71,12 @@ class _CoursesScreenState extends State<CoursesScreen> {
           SizedBox(height: 24),
           Text('My Courses', style: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold)),
           SizedBox(height: 12),
-          _buildCourseRow(_filteredCourses, showProgress: true),
+          _buildCourseRow(
+              _filteredCourses
+              .where((course) => course.progress > 0.0)
+              .toList()
+              ..sort((a, b) => b.progress.compareTo(a.progress)),
+              showProgress: true),
           SizedBox(height: 32),
           Text('All Courses', style: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold)),
           SizedBox(height: 12),
