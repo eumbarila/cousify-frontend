@@ -52,6 +52,37 @@ class ApiService {
     throw HttpException('Failed to get course detail: ${resp.statusCode}');
   }
 
+  // PATCH /course/{course_id}/download/{user_id} - toggle download status
+  static Future<Map<String, dynamic>> toggleCourseDownload(
+    int courseId,
+    bool isDownloaded,
+  ) async {
+    final userId = await SessionManager.getUserId();
+    if (userId == null) {
+      throw HttpException('User not logged in');
+    }
+
+    final resp = await http.patch(
+      Uri.parse('$_baseUrl/course/$courseId/download/$userId'),
+      headers: _defaultHeaders(),
+      body: jsonEncode({'is_downloaded': isDownloaded}),
+    );
+
+    if (resp.statusCode == 200) {
+      return json.decode(resp.body) as Map<String, dynamic>;
+    }
+
+    throw HttpException('Failed to toggle download: ${resp.statusCode}');
+  }
+
+  // Filtrar cursos descargados desde getCourses()
+  static Future<List<Map<String, dynamic>>> getDownloadedCourses() async {
+    final allCourses = await getCourses();
+    return allCourses
+        .where((course) => course['is_downloaded'] == true)
+        .toList();
+  }
+
   static Future<bool> updateCourseProgress(
     int courseId,
     double progress,

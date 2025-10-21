@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cousify_frontend/utils/colors.dart';
 import 'package:cousify_frontend/models/course.dart';
 import 'package:cousify_frontend/screens/CourseContentScreen.dart';
+import 'package:cousify_frontend/services/api_service.dart';
 
 class CourseDetailScreen extends StatefulWidget {
   final Course course;
@@ -18,10 +19,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  late bool _isDownloaded;
+  bool _isDownloading = false;
 
   @override
   void initState() {
     super.initState();
+    _isDownloaded = widget.course.isDownloaded;
     _animationController = AnimationController(
       duration: Duration(milliseconds: 300),
       vsync: this,
@@ -51,14 +55,55 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
     }
   }
 
+  Future<void> _toggleDownload() async {
+    if (_isDownloading) return;
+
+    setState(() {
+      _isDownloading = true;
+    });
+
+    try {
+      final newDownloadStatus = !_isDownloaded;
+      await ApiService.toggleCourseDownload(
+        widget.course.id,
+        newDownloadStatus,
+      );
+
+      setState(() {
+        _isDownloaded = newDownloadStatus;
+        _isDownloading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isDownloaded
+                ? 'Course downloaded successfully!'
+                : 'Course removed from downloads',
+          ),
+          backgroundColor: _isDownloaded ? Colors.green : Colors.orange,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _isDownloading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   void _handleOptionTap(String option) {
     _toggleOptions();
     Future.delayed(Duration(milliseconds: 200), () {
       switch (option) {
         case 'download':
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Downloading course...')));
+          _toggleDownload();
           break;
         case 'favorite':
           ScaffoldMessenger.of(
@@ -350,9 +395,17 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   _buildFloatingOption(
-                                    Icons.download_outlined,
-                                    'Download course',
-                                    () => _handleOptionTap('download'),
+                                    _isDownloaded
+                                        ? Icons.download_done
+                                        : Icons.download_outlined,
+                                    _isDownloaded
+                                        ? 'Remove download'
+                                        : (_isDownloading
+                                              ? 'Downloading...'
+                                              : 'Download course'),
+                                    _isDownloading
+                                        ? () {}
+                                        : () => _handleOptionTap('download'),
                                   ),
                                   SizedBox(height: 12),
                                   _buildFloatingOption(
@@ -395,6 +448,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
   }
 
   Widget _buildFloatingOption(IconData icon, String title, VoidCallback onTap) {
+    final isDownloadOption =
+        title.contains('Download') || title.contains('Remove');
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -414,7 +470,25 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: AppColors.primaryColor, size: 20),
+            if (_isDownloading && isDownloadOption)
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.primaryColor,
+                  ),
+                ),
+              )
+            else
+              Icon(
+                icon,
+                color: _isDownloaded && isDownloadOption
+                    ? Colors.green
+                    : AppColors.primaryColor,
+                size: 20,
+              ),
             SizedBox(width: 12),
             Text(
               title,
