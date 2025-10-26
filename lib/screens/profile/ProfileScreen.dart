@@ -132,10 +132,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.backgroundFadeColor),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
         actions: [
           // lápiz de editar perfil, menos visible
           IconButton(
