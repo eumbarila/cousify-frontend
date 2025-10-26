@@ -33,7 +33,7 @@ class UserService {
     throw HttpException('Failed to load profile: ${resp.statusCode}');
   }
 
-  // PUT /user/edit/{userId} - actualizar perfil del usuario logueado
+  // PATCH /user/edit/{userId} - actualizar perfil del usuario logueado
   static Future<Map<String, dynamic>> updateProfile(
     Map<String, dynamic> data,
   ) async {
@@ -42,7 +42,7 @@ class UserService {
       throw HttpException('User not logged in');
     }
 
-    final resp = await http.put(
+    final resp = await http.patch(
       Uri.parse('$_baseUrl/user/edit/$userId'),
       headers: _defaultHeaders(),
       body: jsonEncode(data),

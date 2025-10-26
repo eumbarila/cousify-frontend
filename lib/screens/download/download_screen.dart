@@ -59,10 +59,6 @@ class _DownloadScreenState extends State<DownloadScreen> {
         elevation: 1,
         centerTitle: true,
         title: const Text('Downloads', style: TextStyle(color: Colors.black87)),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
