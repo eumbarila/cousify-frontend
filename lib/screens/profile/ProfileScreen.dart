@@ -78,6 +78,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
+  // Validaciones simples para los campos del perfil
+  bool _isValidEmail(String email) {
+    final pattern = RegExp(r"^[\w\.\-]+@([\w\-]+\.)+[a-zA-Z]{2,}");
+    return pattern.hasMatch(email.trim());
+  }
+
+  bool _isValidPhone(String phone) {
+    final cleaned = phone.replaceAll(RegExp(r"[ \-()]+"), "");
+    if (cleaned.isEmpty) return true; // permitir vacío
+      String s = cleaned;
+      if (s.startsWith('+')) s = s.substring(1);
+      if (s.length < 6 || s.length > 15) return false;
+      return RegExp(r'^[0-9]+$').hasMatch(s);
+  }
+
+  void _showError(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   // guarda un campo concreto en el backend
   Future<void> _saveField(String key, String value, VoidCallback onRollback) async {
     try {
@@ -449,6 +472,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           if (_editingEmail) {
                                             final old = _profile?['email'] ?? '';
                                             final newValue = _emailController.text;
+                                            // Validar formato de email antes de confirmar
+                                            if (!_isValidEmail(newValue)) {
+                                              _showError('Email inválido');
+                                              return;
+                                            }
                                             final confirmed = await showDialog<bool>(
                                               context: context,
                                               builder: (context) => AlertDialog(
@@ -525,6 +553,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             if (_editingPhone) {
                                               final old = _profile?['phone'] ?? '';
                                               final newValue = _phoneController.text;
+                                              // Validar teléfono (si no está vacío debe contener solo números y opcional +)
+                                              if (newValue.trim().isNotEmpty && !_isValidPhone(newValue)) {
+                                                _showError('Teléfono inválido. Sólo números y opcional +, longitud 6-15.');
+                                                return;
+                                              }
                                               final confirmed = await showDialog<bool>(
                                                 context: context,
                                                 builder: (context) => AlertDialog(
