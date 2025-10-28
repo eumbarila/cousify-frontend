@@ -3,6 +3,7 @@ import 'package:cousify_frontend/utils/colors.dart';
 import 'package:cousify_frontend/models/course.dart';
 import 'package:cousify_frontend/screens/CourseContentScreen.dart';
 import 'package:cousify_frontend/services/api_service.dart';
+import 'package:cousify_frontend/screens/AiChatScreen.dart';
 
 class CourseDetailScreen extends StatefulWidget {
   final Course course;
@@ -160,9 +161,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
           ).showSnackBar(SnackBar(content: Text('Added to favorites!')));
           break;
         case 'ai':
-          ScaffoldMessenger.of(
+          // Abrir pantalla de chat con IA
+          Navigator.push(
             context,
-          ).showSnackBar(SnackBar(content: Text('AI Chat coming soon!')));
+            MaterialPageRoute(
+              builder: (context) => AiChatScreen(courseTitle: widget.course.title, courseId: widget.course.id),
+            ),
+          );
           break;
       }
     });
