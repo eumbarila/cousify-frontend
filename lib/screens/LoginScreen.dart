@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cousify_frontend/utils/colors.dart';
+import 'package:cousify_frontend/services/auth_service.dart';
 import 'package:cousify_frontend/screens/CoursesScreen.dart';
 import 'package:cousify_frontend/screens/ProfileScreen.dart';
 import 'package:cousify_frontend/screens/DownloadScreen.dart';
-import 'package:cousify_frontend/screens/MoreScreen.dart';
+import 'package:cousify_frontend/screens/certificates_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,17 +13,14 @@ class LoginScreen extends StatefulWidget {
   State createState() => _LoginScreenState();
 }
 
-
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Coursify"),
-      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 16.0),
@@ -31,11 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/logo.png',
-                  width: 120,
-                  height: 120,
-                ),
+                Image.asset('assets/logo.png', width: 120, height: 120),
                 const SizedBox(height: 20),
                 const Text(
                   'Welcome to Coursify',
@@ -54,10 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.primaryColor),
                     ),
-                    prefixIcon: Icon(
-                      Icons.email,
-                      color: AppColors.primaryColor,
-                    ),
+                    prefixIcon: Icon(Icons.email, color: AppColors.primaryColor),
                   ),
                   keyboardType: TextInputType.emailAddress,
                 ),
@@ -70,35 +61,107 @@ class _LoginScreenState extends State<LoginScreen> {
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.primaryColor),
                     ),
-                    prefixIcon: Icon(
-                      Icons.lock,
-                      color: AppColors.primaryColor,
-                    ),
+                    prefixIcon: Icon(Icons.lock, color: AppColors.primaryColor),
                   ),
                   obscureText: true,
                 ),
-                const SizedBox(height: 40),
-                ElevatedButton(
-                  onPressed: () {
-                    String email = _emailController.text;
-                    String password = _passwordController.text;
-                    if (email.isNotEmpty && password.isNotEmpty) { //call backend
+                const SizedBox(height: 30),
+                
+                // Error message con diseño mejorado - ANTES del botón
+                if (_errorMessage != null)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red[300]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.red[700],
+                          size: 20,
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(
+                              color: Colors.red[700],
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    String email = _emailController.text.trim();
+                    String password = _passwordController.text.trim();
+
+                    setState(() => _errorMessage = null);
+
+                    if (email.isEmpty || password.isEmpty) {
+                      setState(() => _errorMessage = 'Email and password cannot be empty');
+                      return;
+                    }
+
+                    try {
+                      await AuthService.loginUser(email, password);
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => HomePage()),
                       );
-                    } else {
-                      print("Error fro email or pass");
+                    } catch (e) {
+                      setState(() => _errorMessage = 'Incorrect email or password');
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white, // Texto e icono blancos
                     minimumSize: Size(double.infinity, 50),
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
-                  child: const Text(
+                  icon: Icon(Icons.login, color: Colors.white),
+                  label: const Text(
                     'Log In',
-                    style: TextStyle(color: AppColors.backgroundFadeColor),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                
+                // Forgot Password link
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () {
+                    // TODO: Implementar funcionalidad de forgot password
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Forgot password feature coming soon!'),
+                        backgroundColor: AppColors.primaryColor,
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'Forgot Password?',
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColors.primaryColor, // Color del subrayado igual al texto
+                    ),
                   ),
                 ),
               ],
@@ -121,8 +184,8 @@ class _HomePageState extends State {
   final List<Widget> _pages = [
     CoursesScreen(),
     DownloadScreen(),
-    ProfileScreen(),
-    MoreScreen(),
+    ProfileScreen(showBottomNav: false),
+    CertificatesScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -134,7 +197,6 @@ class _HomePageState extends State {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Coursify')),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomAppBar(
         child: Row(
@@ -143,7 +205,7 @@ class _HomePageState extends State {
             _buildIcon(Icons.view_list_rounded, 'Courses', 0),
             _buildIcon(Icons.save_alt_rounded, 'Download', 1),
             _buildIcon(Icons.person, 'Profile', 2),
-            _buildIcon(Icons.more_horiz, 'More', 3),
+            _buildIcon(Icons.workspace_premium, 'Certificates', 3),
           ],
         ),
       ),
@@ -160,12 +222,15 @@ class _HomePageState extends State {
           Icon(
             icon,
             size: 35.0,
-            color: isSelected ? AppColors.primaryColor : AppColors.backgroundFadeColor,
+            color: isSelected
+                ? AppColors.primaryColor
+                : AppColors.backgroundFadeColor,
           ),
           SizedBox(height: 1),
           Text(
             label,
             style: TextStyle(
+              fontSize: 10,
               color: isSelected ? AppColors.primaryColor : AppColors.backgroundFadeColor,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),

@@ -1,9 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:cousify_frontend/utils/colors.dart';
-
-class DownloadScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('Download Page'));
-  }
-}
+// Barrel export: re-export the implementation in the download folder.
+// This keeps the public import path stable (import 'package:cousify_frontend/screens/DownloadScreen.dart')
+// while the implementation lives in lib/screens/download/download_screen.dart
+export 'package:cousify_frontend/screens/download/download_screen.dart';
