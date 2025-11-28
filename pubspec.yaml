@@ -39,6 +39,9 @@ dependencies:
   flutter_svg: ^2.0.10
   video_player: ^2.8.1
   shared_preferences: ^2.2.2
+  dio: ^5.4.0
+  file_picker: ^8.0.0
+  permission_handler: ^11.0.0
 
 dev_dependencies:
   flutter_test:

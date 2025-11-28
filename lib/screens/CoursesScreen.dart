@@ -15,6 +15,8 @@ class CoursesScreen extends StatefulWidget {
 class _CoursesScreenState extends State<CoursesScreen> {
   List<Course> _courses = [];
   List<Course> _filteredCourses = [];
+  List<Course> _watchlistCourses = [];
+  bool _loadingWatchlist = true;
   bool _isLoading = true;
   String _searchQuery = '';
 
@@ -34,6 +36,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
         _filteredCourses = courses;
         _isLoading = false;
       });
+      await _loadWatchlist();
     } catch (e) {
       print('Error loading courses: $e');
     }
@@ -46,6 +49,23 @@ class _CoursesScreenState extends State<CoursesScreen> {
           .where((c) => c.title.toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
+  }
+
+  Future<void> _loadWatchlist() async {
+    try {
+      final watchlistData = await ApiService.getWatchlist();
+      final ids = watchlistData.map((e) => e.courseId.toString()).toSet();
+
+      final matches = _courses.where((c) => ids.contains(c.id.toString())).toList();
+
+      setState(() {
+        _watchlistCourses = matches;
+        _loadingWatchlist = false;
+      });
+    } catch (e) {
+      print("Error loading watchlist: $e");
+      setState(() => _loadingWatchlist = false);
+    }
   }
 
   @override
@@ -77,7 +97,16 @@ class _CoursesScreenState extends State<CoursesScreen> {
               .toList()
               ..sort((a, b) => b.progress.compareTo(a.progress)),
               showProgress: true),
-          SizedBox(height: 32),
+          if (_loadingWatchlist)
+            Center(child: CircularProgressIndicator())
+          else if (_watchlistCourses.isNotEmpty) ...[
+            SizedBox(height: 24),
+            Text('My Watchlist',
+                style: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold)),
+            SizedBox(height: 12),
+            _buildCourseRow(_watchlistCourses, showProgress: false),
+          ],
+          SizedBox(height: 24),
           Text('All Courses', style: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold)),
           SizedBox(height: 12),
           ..._buildCourseRows(_filteredCourses, 5, showProgress: false),

@@ -4,6 +4,8 @@ import 'package:cousify_frontend/models/course.dart';
 import 'package:cousify_frontend/services/api_service.dart';
 import 'package:cousify_frontend/screens/CourseDetailScreen.dart';
 
+import '../LoginScreen.dart';
+
 class DownloadScreen extends StatefulWidget {
   const DownloadScreen({super.key});
 
@@ -52,59 +54,68 @@ class _DownloadScreenState extends State<DownloadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        centerTitle: true,
-        title: const Text('Downloads', style: TextStyle(color: Colors.black87)),
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          _loadDownloadedCourses();
-        },
-        child: _isLoading
-            ? Center(child: CircularProgressIndicator())
-            : _downloadedCourses.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.download_outlined,
-                      size: 64,
-                      color: Colors.grey[400],
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'No downloaded courses yet',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 18),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Download courses to access them offline',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 14),
-                    ),
-                  ],
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundColor,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 1,
+          centerTitle: true,
+          title: const Text('Downloads', style: TextStyle(color: Colors.black87)),
+        ),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            _loadDownloadedCourses();
+          },
+          child: _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : _downloadedCourses.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.download_outlined,
+                        size: 64,
+                        color: Colors.grey[400],
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'No downloaded courses yet',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 18),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Download courses to access them offline',
+                        style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _downloadedCourses.length,
+                  itemBuilder: (context, index) {
+                    final course = _downloadedCourses[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: CourseCard(
+                        course: course,
+                        showProgressOverlay: true,
+                        onDownloadChanged: () =>
+                            _loadDownloadedCourses(), // Refresh when download status changes
+                      ),
+                    );
+                  },
                 ),
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _downloadedCourses.length,
-                itemBuilder: (context, index) {
-                  final course = _downloadedCourses[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: CourseCard(
-                      course: course,
-                      showProgressOverlay: true,
-                      onDownloadChanged: () =>
-                          _loadDownloadedCourses(), // Refresh when download status changes
-                    ),
-                  );
-                },
-              ),
+        ),
       ),
     );
   }
