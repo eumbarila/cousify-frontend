@@ -5,6 +5,7 @@ import 'package:cousify_frontend/screens/CoursesScreen.dart';
 import 'package:cousify_frontend/screens/ProfileScreen.dart';
 import 'package:cousify_frontend/screens/DownloadScreen.dart';
 import 'package:cousify_frontend/screens/certificates_screen.dart';
+import 'package:cousify_frontend/screens/ForgotPasswordEmailScreen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -145,11 +146,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
                 TextButton(
                   onPressed: () {
-                    // TODO: Implementar funcionalidad de forgot password
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Forgot password feature coming soon!'),
-                        backgroundColor: AppColors.primaryColor,
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ForgotPasswordEmailScreen(),
                       ),
                     );
                   },

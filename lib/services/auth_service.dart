@@ -42,4 +42,48 @@ class AuthService {
   static Future<void> logout() async {
     await SessionManager.clearSession();
   }
+
+  static Future<void> requestPasswordReset(String email) async {
+    final resp = await http.post(
+      Uri.parse('$_baseUrl/auth/password-reset/request'),
+      headers: _defaultHeaders(),
+      body: jsonEncode({'email': email}),
+    );
+
+    if (resp.statusCode != 200) {
+      throw HttpException('No pudimos enviar el código (${resp.statusCode})');
+    }
+  }
+
+  static Future<void> verifyResetCode(String email, String code) async {
+    final resp = await http.post(
+      Uri.parse('$_baseUrl/auth/password-reset/verify'),
+      headers: _defaultHeaders(),
+      body: jsonEncode({'email': email, 'code': code}),
+    );
+
+    if (resp.statusCode != 200) {
+      throw HttpException('Código inválido (${resp.statusCode})');
+    }
+  }
+
+  static Future<void> resetPasswordWithCode(
+    String email,
+    String code,
+    String newPassword,
+  ) async {
+    final resp = await http.post(
+      Uri.parse('$_baseUrl/auth/password-reset/confirm'),
+      headers: _defaultHeaders(),
+      body: jsonEncode({
+        'email': email,
+        'code': code,
+        'new_password': newPassword,
+      }),
+    );
+
+    if (resp.statusCode != 200) {
+      throw HttpException('No pudimos actualizar la contraseña (${resp.statusCode})');
+    }
+  }
 }

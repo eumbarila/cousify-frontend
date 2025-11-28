@@ -5,6 +5,7 @@ import 'package:cousify_frontend/widgets/profile_photo_picker.dart';
 import 'package:cousify_frontend/services/user_service.dart';
 import 'package:cousify_frontend/screens/LoginScreen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cousify_frontend/screens/ForgotPasswordScreen.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const String routeName = '/profile';
@@ -194,8 +195,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       color: Colors.grey[300],
                                       shape: BoxShape.circle,
                                     ),
-                                    child:
-                                        _profile != null &&
+                                    child: _profile != null &&
                                             _profile!['avatar_url'] != null
                                         ? ClipOval(
                                             child: SvgPicture.network(
@@ -203,16 +203,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               fit: BoxFit.cover,
                                               width: 84,
                                               height: 84,
-                                              placeholderBuilder:
-                                                  (
-                                                    BuildContext context,
-                                                  ) => Center(
-                                                    child:
-                                                        CircularProgressIndicator(),
-                                                  ),
+                                              placeholderBuilder: (BuildContext context) =>
+                                                  const Center(
+                                                child: CircularProgressIndicator(),
+                                              ),
                                             ),
                                           )
-                                        : Center(
+                                        : const Center(
                                             child: Icon(
                                               Icons.camera_alt,
                                               color: Colors.white,
@@ -596,6 +593,109 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       ),
                                     ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 18),
+
+                          // Account security shortcut
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'ACCOUNT SECURITY',
+                                  style: TextStyle(
+                                    color:
+                                        AppColors.backgroundFadeColor.withOpacity(0.7),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Card(
+                                  margin: EdgeInsets.zero,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 2,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(12),
+                                    onTap: () {
+                                      final email = _profile?['email'] as String?;
+                                      if (email == null || email.isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'No encontramos un correo asociado a tu cuenta.',
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => ForgotPasswordScreen(
+                                            email: email,
+                                            sendCodeOnInit: true,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 14,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 42,
+                                            height: 42,
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primaryColor.withOpacity(0.15),
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: Icon(
+                                              Icons.lock_reset,
+                                              color: AppColors.primaryColor,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: const [
+                                                Text(
+                                                  'Cambiar contraseña',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                                SizedBox(height: 2),
+                                                Text(
+                                                  'Actualiza tu clave de acceso',
+                                                  style: TextStyle(
+                                                    color: Colors.black54,
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Icon(
+                                            Icons.chevron_right,
+                                            color: AppColors.backgroundFadeColor,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
