@@ -156,15 +156,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         final totalDuration = _controller.value.duration;
 
         if (totalDuration.inSeconds > 0) {
-          final progressPercentage = (currentPosition.inSeconds / totalDuration.inSeconds) * 100;
+          final progressPercentage =
+              (currentPosition.inSeconds / totalDuration.inSeconds) * 100;
 
           // Only update if progress has changed significantly (more than 1%)
           if ((progressPercentage - _lastReportedProgress).abs() >= 1.0) {
             try {
               // Usar SyncService para guardar offline y sincronizar automáticamente
-              await SyncService.updateProgress(widget.course.id, progressPercentage);
+              await SyncService.updateProgress(
+                widget.course.id,
+                progressPercentage,
+              );
               _lastReportedProgress = progressPercentage;
-              print('Progress updated: ${progressPercentage.toStringAsFixed(1)}%');
+              print(
+                'Progress updated: ${progressPercentage.toStringAsFixed(1)}%',
+              );
             } catch (e) {
               print('Error updating progress: $e');
             }
