@@ -45,13 +45,17 @@ class AiService {
 
         if (resp.statusCode == 200) {
           // Try to decode JSON first. The backend may return:
-          //  - a JSON object {"answer": "..."}
+          //  - a JSON object {"response": "..."} (current API)
+          //  - a JSON object {"answer": "..."} (legacy API)
           //  - a JSON string: "..." (FastAPI serializes plain str as JSON string)
           //  - plain text (non-JSON)
           try {
             final data = jsonDecode(resp.body);
-            if (data is Map && data['answer'] != null) {
-              return data['answer'].toString();
+            if (data is Map) {
+              final responseText = data['response'] ?? data['answer'];
+              if (responseText != null) {
+                return responseText.toString();
+              }
             }
             if (data is String) {
               return data;
