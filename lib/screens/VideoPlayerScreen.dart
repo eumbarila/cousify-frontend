@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:cousify_frontend/models/course.dart';
 import 'package:cousify_frontend/utils/colors.dart';
-import 'package:cousify_frontend/services/api_service.dart';
+import 'package:cousify_frontend/services/local_database.dart';
+import 'package:cousify_frontend/services/sync_service.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final Course course;
@@ -39,13 +41,35 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   _initializeVideo() async {
     try {
-      // Si la URL empieza con "assets/", usar asset, sino usar network
-      if (widget.course.downloadUrl!.startsWith('assets/')) {
-        _controller = VideoPlayerController.asset(widget.course.downloadUrl!);
+      print('🎥 Initializing video for course: ${widget.course.id}');
+
+      // 1. Primero intentar cargar desde archivo local (offline)
+      final localCourse = await LocalDatabase.getCourse(widget.course.id);
+
+      if (localCourse != null && localCourse['video_path'] != null) {
+        // El curso está descargado, usar archivo local
+        final videoPath = localCourse['video_path'] as String;
+        final videoFile = File(videoPath);
+
+        if (await videoFile.exists()) {
+          print('✅ Using offline video: $videoPath');
+          _controller = VideoPlayerController.file(videoFile);
+        } else {
+          print('⚠️ Local video file not found, falling back to network');
+          _controller = VideoPlayerController.networkUrl(
+            Uri.parse(widget.course.downloadUrl!),
+          );
+        }
       } else {
-        _controller = VideoPlayerController.networkUrl(
-          Uri.parse(widget.course.downloadUrl!),
-        );
+        // No está descargado, usar network
+        print('📡 Using network video: ${widget.course.downloadUrl}');
+        if (widget.course.downloadUrl!.startsWith('assets/')) {
+          _controller = VideoPlayerController.asset(widget.course.downloadUrl!);
+        } else {
+          _controller = VideoPlayerController.networkUrl(
+            Uri.parse(widget.course.downloadUrl!),
+          );
+        }
       }
 
       await _controller.initialize();
@@ -53,12 +77,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         _isLoading = false;
       });
 
+      print('🎬 Video initialized successfully');
+
       // Auto-hide controls after 3 seconds
       _hideControlsAfterDelay();
-      
+
       // Start progress tracking
       _startProgressTracking();
     } catch (e) {
+      print('❌ Error initializing video: $e');
       setState(() {
         _isLoading = false;
         _hasError = true;
@@ -127,14 +154,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       if (_controller.value.isInitialized && _controller.value.isPlaying) {
         final currentPosition = _controller.value.position;
         final totalDuration = _controller.value.duration;
-        
+
         if (totalDuration.inSeconds > 0) {
           final progressPercentage = (currentPosition.inSeconds / totalDuration.inSeconds) * 100;
-          
+
           // Only update if progress has changed significantly (more than 1%)
           if ((progressPercentage - _lastReportedProgress).abs() >= 1.0) {
             try {
-              await ApiService.updateCourseProgress(widget.course.id, progressPercentage);
+              // Usar SyncService para guardar offline y sincronizar automáticamente
+              await SyncService.updateProgress(widget.course.id, progressPercentage);
               _lastReportedProgress = progressPercentage;
               print('Progress updated: ${progressPercentage.toStringAsFixed(1)}%');
             } catch (e) {

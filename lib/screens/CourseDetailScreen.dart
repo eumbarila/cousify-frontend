@@ -3,7 +3,11 @@ import 'package:cousify_frontend/utils/colors.dart';
 import 'package:cousify_frontend/models/course.dart';
 import 'package:cousify_frontend/screens/CourseContentScreen.dart';
 import 'package:cousify_frontend/services/api_service.dart';
+import 'package:cousify_frontend/services/download_service.dart';
+import 'package:cousify_frontend/services/local_database.dart';
+import 'package:cousify_frontend/services/download_manager.dart';
 import 'package:cousify_frontend/screens/AiChatScreen.dart';
+import 'package:cousify_frontend/screens/DownloadScreen.dart';
 import 'package:cousify_frontend/models/WatchListItem.dart';
 
 import 'LoginScreen.dart';
@@ -35,7 +39,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
   void initState() {
     super.initState();
     _checkIfFavorite();
-    _isDownloaded = widget.course.isDownloaded;
+    _checkDownloadStatus();
     _detailedCourse = widget.course; // Inicializamos con el curso actual
     _animationController = AnimationController(
       duration: Duration(milliseconds: 300),
@@ -48,6 +52,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
     );
     _loadCourseDetails();
+  }
+
+  Future<void> _checkDownloadStatus() async {
+    final isDownloaded = await LocalDatabase.isCourseDownloaded(widget.course.id);
+    setState(() {
+      _isDownloaded = isDownloaded;
+    });
   }
 
   Future<void> _checkIfFavorite() async {
@@ -161,30 +172,99 @@ class _CourseDetailScreenState extends State<CourseDetailScreen>
   Future<void> _toggleDownload() async {
     if (_isDownloading) return;
 
+    // Si ya está descargado, eliminarlo
+    if (_isDownloaded) {
+      await _deleteDownload();
+      return;
+    }
+
+    // Verificar que tenga URL de descarga
+    final course = _detailedCourse ?? widget.course;
+    if (course.downloadUrl == null || course.downloadUrl!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This course does not have a download URL'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Navegar a la pantalla de Downloads ANTES de iniciar la descarga
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const DownloadScreen()),
+    );
+
+    // Notificar que la descarga va a comenzar
+    DownloadManager().startDownload(course.id, course.title);
+
+    print('🔽 Starting download for course: ${course.id}');
+    print('📍 Download URL: ${course.downloadUrl}');
+
+    // Descargar en segundo plano
+    _performDownload(course);
+  }
+
+  Future<void> _performDownload(Course course) async {
+    try {
+      // Descargar el video REALMENTE al teléfono
+      await DownloadService.downloadCourse(
+        courseId: course.id,
+        title: course.title,
+        videoUrl: course.downloadUrl!,
+        description: course.description,
+        thumbnailUrl: course.titleImage,
+        onProgress: (progress) {
+          print('📊 Download progress: ${progress.toStringAsFixed(1)}%');
+          // Actualizar el progreso en el DownloadManager
+          DownloadManager().updateProgress(course.id, course.title, progress);
+        },
+      );
+
+      print('✅ Download completed and saved to SQLite');
+
+      // Notificar que se completó
+      DownloadManager().completeDownload(course.id, course.title);
+
+      // También actualizar en el backend
+      try {
+        await ApiService.toggleCourseDownload(course.id, true);
+      } catch (e) {
+        print('⚠️ Failed to update backend, but local download succeeded: $e');
+      }
+    } catch (e) {
+      print('❌ Download failed: $e');
+
+      // Notificar error
+      DownloadManager().errorDownload(course.id, course.title, e.toString());
+    }
+  }
+
+  Future<void> _deleteDownload() async {
     setState(() {
       _isDownloading = true;
     });
 
     try {
-      final newDownloadStatus = !_isDownloaded;
-      await ApiService.toggleCourseDownload(
-        widget.course.id,
-        newDownloadStatus,
-      );
+      await DownloadService.deleteCourse(widget.course.id);
+
+      // También actualizar en el backend
+      try {
+        await ApiService.toggleCourseDownload(widget.course.id, false);
+      } catch (e) {
+        print('⚠️ Failed to update backend, but local delete succeeded: $e');
+      }
 
       setState(() {
-        _isDownloaded = newDownloadStatus;
+        _isDownloaded = false;
         _isDownloading = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isDownloaded
-                ? 'Course downloaded successfully!'
-                : 'Course removed from downloads',
-          ),
-          backgroundColor: _isDownloaded ? Colors.green : Colors.orange,
+        const SnackBar(
+          content: Text('Course removed from downloads'),
+          backgroundColor: Colors.orange,
         ),
       );
     } catch (e) {
