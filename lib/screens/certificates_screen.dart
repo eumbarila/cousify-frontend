@@ -128,27 +128,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
                         itemCount: courses.length,
                         itemBuilder: (context, index) {
                           final course = courses[index];
-
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            child: ListTile(
-                              leading: Icon(Icons.workspace_premium,
-                                  color: AppColors.primaryColor),
-                              title: Text(
-                                course.title.length > 30
-                                    ? course.title.substring(0, 27) + "..."
-                                    : course.title,
-                              ),
-                              subtitle: Text("Completed — ${course.progress}%"),
-                              trailing: ElevatedButton(
-                                onPressed: () => _handleDownloadCertificate(course),
-                                child: const Text(
-                                  "Obtain\ncertificate",
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                          );
+                          return _buildCertificateCard(course);
                         },
                       );
                     },
@@ -162,6 +142,131 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
         floatingActionButton: FloatingActionButton(
           onPressed: _showCertificateValidationModal,
           child: const Icon(Icons.check_circle),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCertificateCard(Course course) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.grey.shade200,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _handleDownloadCertificate(course),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                // Icon with circular background
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.workspace_premium,
+                    color: AppColors.primaryColor,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                // Course title and completed badge
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        course.title.length > 35
+                            ? '${course.title.substring(0, 32)}...'
+                            : course.title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Completed badge/tag
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.green.shade200,
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.check_circle,
+                              size: 14,
+                              color: Colors.green.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Completed',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Download icon button
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.download_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
